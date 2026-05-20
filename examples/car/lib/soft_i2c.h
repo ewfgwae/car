@@ -23,7 +23,7 @@ typedef enum {
     I2C_RW_READ
 }  I2C_RW_t; 
 
-#define I2C_Delay() for(uint16_t  i=0; i<16; i++)
+#define I2C_Delay() for(uint16_t  i=0; i<1; i++)
 
 
 static inline void Soft_SDA_OUT(void) {

@@ -11,7 +11,7 @@
 
 void init_dmp(icm20948_device_t *icm);
 
-bool task_imu_init(void);
+void task_imu_init(void);
 void task_imu_run(void);
 
 #endif
