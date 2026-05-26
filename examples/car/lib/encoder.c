@@ -1,4 +1,5 @@
 #include "encoder.h"
+#include "delay.h"
 
 uint32_t gpio_interrup1,gpio_interrup2;
 int volatile Get_Encoder_countA,Get_Encoder_countB;
@@ -7,8 +8,10 @@ void Encoder_Init()
 	DL_Timer_startCounter(PWM_0_INST);
 	NVIC_ClearPendingIRQ(ENCODERA_INT_IRQN);
     NVIC_ClearPendingIRQ(ENCODERB_INT_IRQN);
+	
 	NVIC_EnableIRQ(ENCODERA_INT_IRQN);
     NVIC_EnableIRQ(ENCODERB_INT_IRQN);
+	
 	NVIC_ClearPendingIRQ(TIMER_ENCODER_READ_INST_INT_IRQN);
 	NVIC_EnableIRQ(TIMER_ENCODER_READ_INST_INT_IRQN);
 }

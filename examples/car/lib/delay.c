@@ -41,7 +41,7 @@ void p_s(char *string,  ...)
     va_end(arg);
 
     if(re < 0){
-        strcpy(buffer,  "p_s :´óÐ¡Òç³ö\r\n");
+        strcpy(buffer,  "p_s :\r\n");
     }
 
     p = buffer;
@@ -53,12 +53,12 @@ void p_s(char *string,  ...)
     
 }
 
-void buzzer_on()
+void buzzer_off()
 {
     DL_GPIO_setPins(BUZZER_PORT,  BUZZER_EN_PIN);
 }
 
-void buzzer_off()
+void buzzer_on()
 {
     DL_GPIO_clearPins(BUZZER_PORT,  BUZZER_EN_PIN);
 }

@@ -125,7 +125,7 @@ extern "C" {
 #define TIMER_ENCODER_READ_INST                                          (TIMA1)
 #define TIMER_ENCODER_READ_INST_IRQHandler                        TIMA1_IRQHandler
 #define TIMER_ENCODER_READ_INST_INT_IRQN                        (TIMA1_INT_IRQn)
-#define TIMER_ENCODER_READ_INST_LOAD_VALUE                                 (9999U)
+#define TIMER_ENCODER_READ_INST_LOAD_VALUE                                 (4999U)
 
 
 
@@ -135,9 +135,9 @@ extern "C" {
 #define I2C_0_INST_IRQHandler                                    I2C1_IRQHandler
 #define I2C_0_INST_INT_IRQN                                        I2C1_INT_IRQn
 #define GPIO_I2C_0_SDA_PORT                                                GPIOA
-#define GPIO_I2C_0_SDA_PIN                                        DL_GPIO_PIN_18
-#define GPIO_I2C_0_IOMUX_SDA                                     (IOMUX_PINCM40)
-#define GPIO_I2C_0_IOMUX_SDA_FUNC                      IOMUX_PINCM40_PF_I2C1_SDA
+#define GPIO_I2C_0_SDA_PIN                                        DL_GPIO_PIN_16
+#define GPIO_I2C_0_IOMUX_SDA                                     (IOMUX_PINCM38)
+#define GPIO_I2C_0_IOMUX_SDA_FUNC                      IOMUX_PINCM38_PF_I2C1_SDA
 #define GPIO_I2C_0_SCL_PORT                                                GPIOA
 #define GPIO_I2C_0_SCL_PIN                                        DL_GPIO_PIN_11
 #define GPIO_I2C_0_IOMUX_SCL                                     (IOMUX_PINCM22)
@@ -210,12 +210,6 @@ extern "C" {
 /* Defines for PIN_4: GPIOB.4 with pinCMx 17 on package pin 52 */
 #define SENSOR_PIN_4_PIN                                         (DL_GPIO_PIN_4)
 #define SENSOR_PIN_4_IOMUX                                       (IOMUX_PINCM17)
-/* Defines for PIN_5: GPIOB.5 with pinCMx 18 on package pin 53 */
-#define SENSOR_PIN_5_PIN                                         (DL_GPIO_PIN_5)
-#define SENSOR_PIN_5_IOMUX                                       (IOMUX_PINCM18)
-/* Defines for PIN_6: GPIOB.6 with pinCMx 23 on package pin 58 */
-#define SENSOR_PIN_6_PIN                                         (DL_GPIO_PIN_6)
-#define SENSOR_PIN_6_IOMUX                                       (IOMUX_PINCM23)
 /* Port definition for Pin Group TURN_NUM */
 #define TURN_NUM_PORT                                                    (GPIOB)
 
@@ -266,14 +260,14 @@ extern "C" {
 #define ENCODERB_E2B_PIN                                        (DL_GPIO_PIN_12)
 #define ENCODERB_E2B_IOMUX                                       (IOMUX_PINCM29)
 /* Port definition for Pin Group I2C */
-#define I2C_PORT                                                         (GPIOA)
+#define I2C_PORT                                                         (GPIOB)
 
-/* Defines for SDA: GPIOA.25 with pinCMx 55 on package pin 26 */
-#define I2C_SDA_PIN                                             (DL_GPIO_PIN_25)
-#define I2C_SDA_IOMUX                                            (IOMUX_PINCM55)
-/* Defines for SCL: GPIOA.16 with pinCMx 38 on package pin 9 */
-#define I2C_SCL_PIN                                             (DL_GPIO_PIN_16)
-#define I2C_SCL_IOMUX                                            (IOMUX_PINCM38)
+/* Defines for SDA: GPIOB.6 with pinCMx 23 on package pin 58 */
+#define I2C_SDA_PIN                                              (DL_GPIO_PIN_6)
+#define I2C_SDA_IOMUX                                            (IOMUX_PINCM23)
+/* Defines for SCL: GPIOB.7 with pinCMx 24 on package pin 59 */
+#define I2C_SCL_PIN                                              (DL_GPIO_PIN_7)
+#define I2C_SCL_IOMUX                                            (IOMUX_PINCM24)
 
 
 

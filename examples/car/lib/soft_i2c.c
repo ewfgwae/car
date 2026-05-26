@@ -10,7 +10,6 @@
   * @retval None
   */
 void Soft_I2C_Init(void) {
-    SYSCFG_DL_GPIO_init();
     /* 设置默认电平 */
     DL_GPIO_setPins(I2C_PORT, I2C_SCL_PIN);
     DL_GPIO_setPins(I2C_PORT, I2C_SDA_PIN);
