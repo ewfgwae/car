@@ -6,137 +6,211 @@
 #include "key.h"
 #include "control.h"
 
-Motor_parameter MotorA,MotorB;				//左右电机相关变量
+Motor_parameter MotorA, MotorB;
 uint32_t ir_dh0_state, ir_dh1_state, ir_dh2_state, ir_dh3_state, ir_dh4_state;
+
 /*=============================================================================
  * 可调参数区域
  *=============================================================================*/
-// 转向角度参数
-float Turn90Angle  = 90;   // 直角弯转向参数
-float TurnMaxAngle = 45;   // 大弯道转向参数
-float TurnMidAngle = 20;   // 中等转向参数（丢线时使用）
-float TurnMinAngle = 15;   // 微调转向参数
+// 转向角度参数（直角弯仍用固定差速，不变）
+float Turn90Angle  = 90;
+float TurnMinAngle = 15;
+float TurnBigAngle = 15;
 // 速度参数
-float BaseSpeed = 200;      // 基础巡线速度（直行时的速度）
-float ForwardLimit = 90;		//前行限制(转向大于该值限制其前进)
+float BaseSpeed = 220;
+float ForwardLimit = 90;
+
+// >>> 改动1：增加巡线PID变量与参数（位置式PID） <<<
+PID_t line_pid;
+float Line_Kp = 15.0f;   // 比例，根据实际调试调整
+float Line_Ki = 0.0f;    // 积分，建议先给0，防止积分饱和冲出赛道
+float Line_Kd = 25.0f;    // 微分，抑制振荡
+
 /*=============================================================================
- * 传感器状态定义--识别到黑线时为1
+ * 传感器状态定义（识别到黑线为1）
  *=============================================================================*/
 typedef enum {
-    STATE_CROSS         = 31,   // 11111 - 十字路口
-    STATE_LEFT_90_A     = 30,   // 11110 - 左直角弯
-    STATE_LEFT_90_B     = 28,   // 11100 - 
-    STATE_LEFT_BIG      = 16,   // 10000 - 左大弯
-    STATE_LEFT_SMALL    = 8 ,   // 01000 - 左微调
-    STATE_RIGHT_90_A    = 15,   // 01111 - 右直角弯
-    STATE_RIGHT_90_B    = 7 ,   // 00111 - 
-    STATE_RIGHT_BIG     = 1 ,   // 00001 - 右大弯
-    STATE_RIGHT_SMALL   = 2 	 ,   // 00010 - 右微调
-    STATE_STRAIGHT      = 4 ,   // 00100 - 直行
-    STATE_LOST          = 0     // 00000 - 丢线
+    STATE_LEFT_90_A     = 30,	//直角左转
+    STATE_LEFT_90_B     = 28,	//直角左转
+    STATE_LEFT_BIG      = 16,	//大调左转
+    STATE_LEFT_SMALL    = 8 ,	//小调左转
+    STATE_STRAIGHT      = 4 ,	//直线
+    STATE_RIGHT_SMALL   = 2 ,	//直角右转
+    STATE_RIGHT_BIG     = 1 ,	//直角右转
+    STATE_RIGHT_90_B    = 7 ,	//大调右转
+    STATE_RIGHT_90_A    = 15,	//小调右转
+    STATE_LOST          = 0	    //丢失
 } SensorState_t;
-float base_speed_mm = 0;        // 基础速度（mm/s）
-float turn_diff = 0;            // 转向差速
-
 
 /*=============================================================================
- * 巡线功能函数（输出两电机目标速度）
+ * 巡线状态机状态定义
+ *=============================================================================*/
+typedef enum {
+    STATE_FORWARD = 0,
+    STATE_TURN,
+    STATE_STOP
+} LineState_t;
+
+float base_speed_mm = 0;
+float turn_diff = 0;
+
+static uint8_t corner_count = 0;
+static int8_t  turn_direction = 0;
+static uint8_t total_corners = 4;
+
+/*=============================================================================
+ * 巡线主函数（状态机实现，仅直角+直行+微调）
  *=============================================================================*/
 void IRDM_line_inspection(void)
 {
-    static int last_state = 0;      // 记录上一次的状态
-	float left_motor_speed = 0;     // 左电机临时速度（m/s）
-    float right_motor_speed = 0;    // 右电机临时速度（m/s）
-	static int turn_cnt=0;
-	static int saved_state = 0;  // 保存转向状态
-	static int stop_turn_cnt = 0; 
-    // 读取传感器状态：4个传感器组合值
-	    // 读取四个引脚的状态并强制转换为0或1
+    static LineState_t state = STATE_FORWARD;
+    static int last_state = 0;
+    static uint8_t pid_inited = 0;   // >>> 改动2：首次运行标志 <<<
+    float left_motor_speed, right_motor_speed;
+
+    /*------- PID首次初始化（清零，防止上电时历史值随机）-------*/
+    if (!pid_inited) {
+        line_pid.error = line_pid.error_i = line_pid.error_last1 = line_pid.error_last2 = 0;
+        line_pid.p = line_pid.i = line_pid.d = line_pid.out = 0;
+        line_pid.kp = Line_Kp;
+        line_pid.ki = Line_Ki;
+        line_pid.kd = Line_Kd;
+        pid_inited = 1;
+    }
+
+    /*------- 1. 读取5个传感器（高电平=黑线）-------*/
     ir_dh4_state = DL_GPIO_readPins(SENSOR_PORT, SENSOR_PIN_4_PIN) ? 1 : 0;
     ir_dh3_state = DL_GPIO_readPins(SENSOR_PORT, SENSOR_PIN_3_PIN) ? 1 : 0;
     ir_dh2_state = DL_GPIO_readPins(SENSOR_PORT, SENSOR_PIN_2_PIN) ? 1 : 0;
     ir_dh1_state = DL_GPIO_readPins(SENSOR_PORT, SENSOR_PIN_1_PIN) ? 1 : 0;
     ir_dh0_state = DL_GPIO_readPins(SENSOR_PORT, SENSOR_PIN_0_PIN) ? 1 : 0;
-	
-    int sensor_state =(ir_dh0_state << 4) | (ir_dh1_state << 3) | (ir_dh2_state << 2) | (ir_dh3_state << 1) | ir_dh4_state; // 将传感器状态组合成一个整数
-	p_s("sensor_state=%d\r\n",sensor_state);
-    // 直角弯两段式处理：前200次直行，后转向
-    if((sensor_state == STATE_LEFT_90_A || sensor_state == STATE_RIGHT_90_A||sensor_state == STATE_LEFT_90_B || sensor_state == STATE_RIGHT_90_B) && turn_cnt == 0)
+
+    int sensor_state = (ir_dh0_state << 4) | (ir_dh1_state << 3) |
+                       (ir_dh2_state << 2) | (ir_dh3_state << 1) | ir_dh4_state;
+
+    /*------- 2. 状态机处理 -------*/
+    switch (state)
     {
-        saved_state = sensor_state;  // 记住转向状态
-        turn_cnt = 1;
-		stop_turn_cnt++;
-		if(stop_turn_cnt >= 4) {
-			Flag_Stop = 1;
-			stop_turn_cnt=0;
-		}
-    }
-    if(turn_cnt > 0)
-    {
-        if(turn_cnt < 50) sensor_state = STATE_STRAIGHT;  
-		else if(turn_cnt >= 50&&turn_cnt < 150) sensor_state = STATE_LEFT_90_A                          ;	
-        else if(turn_cnt < 4000&&sensor_state!=STATE_LEFT_BIG&&sensor_state!=STATE_RIGHT_BIG) sensor_state = saved_state; 
-        else { turn_cnt = 0; saved_state = 0; }  
-        if(turn_cnt > 0) turn_cnt++;
-    }
-  /*=========================================================================*
-     * 状态判断：设置转向差速												   *
-     *=========================================================================*/
-    switch (sensor_state)
-    {
-        case STATE_CROSS:// 交叉路口处理
-			turn_diff = 0;
+        case STATE_FORWARD:
+        {
+            // 直角弯检测完全不变
+            if (sensor_state == STATE_LEFT_90_A || sensor_state == STATE_LEFT_90_B)
+            {
+                corner_count++;
+                turn_direction = 1;
+                state = STATE_TURN;
+                break;
+            }
+            else if (sensor_state == STATE_RIGHT_90_A || sensor_state == STATE_RIGHT_90_B)
+            {
+                corner_count++;
+                turn_direction = -1;
+                state = STATE_TURN;
+                break;
+            }
+
+            // >>> 改动3：正常巡线改为PID计算差速 <<<
+            float line_error = 0.0f;
+            uint8_t valid_line = 1;
+
+            switch (sensor_state)
+            {
+                case STATE_STRAIGHT:
+                    line_error = 0.0f;
+                    break;
+                case STATE_LEFT_SMALL:
+                    line_error = 1.0f;   // 偏左，误差为正
+                    break;
+                case STATE_RIGHT_SMALL:
+                    line_error = -1.0f;  // 偏右，误差为负
+                    break;
+                case STATE_LEFT_BIG:
+                    line_error = 2.0f;
+                    break;
+                case STATE_RIGHT_BIG:
+                    line_error = -2.0f;
+                    break;
+                case STATE_LOST:
+                    valid_line = 0;
+                    break;
+                default:
+                    line_error = 0.0f;
+                    break;
+            }
+
+            if (valid_line) {
+                // target=0（目标走中线），actual=line_error（当前偏差）
+                // 加负号是因为：偏左时 error>0，需要 turn_diff>0（左轮慢右轮快，向右转）
+                turn_diff = -PID(&line_pid, 0.0f, line_error);
+            } else {
+                // 丢线时清零积分，防止累积冲出赛道；再用原逻辑保持方向记忆
+                line_pid.error_i = 0;
+                if (last_state == STATE_LEFT_SMALL)
+                    turn_diff = TurnMinAngle;
+                else if (last_state == STATE_RIGHT_SMALL)
+                    turn_diff = -TurnMinAngle;
+                else
+                    turn_diff = 0;
+            }
             break;
-        case STATE_LEFT_90_A: // 左直角弯
-		case STATE_LEFT_90_B: // 左直角弯
-            turn_diff = Turn90Angle;
+        }
+
+        case STATE_TURN:
+        {
+            // 直角弯仍用固定大差速，不变
+            turn_diff = turn_direction * Turn90Angle;
+
+            if (sensor_state == STATE_STRAIGHT)
+            {
+                state = STATE_FORWARD;
+                turn_diff = 0;
+                // 切回直行时清零PID历史，防止转弯历史导致切回瞬间突变
+                line_pid.error = line_pid.error_i = line_pid.error_last1 = line_pid.error_last2 = 0;
+                line_pid.p = line_pid.i = line_pid.d = line_pid.out = 0;
+            }
             break;
-        case STATE_RIGHT_90_A: // 右直角弯
-		case STATE_RIGHT_90_B: // 右直角弯
-            turn_diff = -Turn90Angle;
-            break;
-        case STATE_LEFT_SMALL://左微调
-            turn_diff = TurnMinAngle;
-            break;
-        case STATE_RIGHT_SMALL://右微调
-            turn_diff = -TurnMinAngle;
-            break;
-        case STATE_STRAIGHT://直行
+        }
+
+        case STATE_STOP:
+        {
             turn_diff = 0;
-            break;
-        case STATE_LOST://丢线处理
-            if (last_state == STATE_LEFT_SMALL) turn_diff = TurnMidAngle;		//继续左转
-			else if (last_state == STATE_RIGHT_SMALL) turn_diff = -TurnMidAngle;//继续右转
-			else if(last_state == STATE_LEFT_BIG ) turn_diff = TurnMaxAngle;	//继续左转
-			else if(last_state == STATE_RIGHT_BIG ) turn_diff = -TurnMaxAngle;  //继续右转
-            break;
-        default: // 未定义状态，直行
-            turn_diff = 0;
+            base_speed_mm = 0;
+            MotorA.Target_Encoder = 0;
+            MotorB.Target_Encoder = 0;
+            return;
+        }
+
+        default:
             break;
     }
-	//保存传感器状态
-	if(sensor_state!=STATE_LOST)
-	{
-		last_state=sensor_state;
-	}
-    // 转向速度越大，基础速度越低
-	if(fabs(turn_diff)<ForwardLimit)
-	{
-		base_speed_mm = BaseSpeed - (BaseSpeed * (fabs(turn_diff) / ForwardLimit));
-	}
-	else base_speed_mm=0;
-    /*========================================================================*
-     * 设置电机目标速度（左-转向差速，右+转向差速，单位：mm/s）                   *
-     *=========================================================================*/
-	left_motor_speed = 0.001f * (base_speed_mm - turn_diff); 
+
+    /*------- 3. 保存非丢线状态 -------*/
+    if (sensor_state != STATE_LOST && state == STATE_FORWARD)
+    {
+        last_state = sensor_state;
+    }
+
+    /*------- 4. 根据转向差速计算基础速度 -------*/
+    if (fabs(turn_diff) < ForwardLimit)
+    {
+        base_speed_mm = BaseSpeed - (BaseSpeed * (fabs(turn_diff) / ForwardLimit));
+    }
+    else
+    {
+        base_speed_mm = 0;
+    }
+
+    /*------- 5. 计算左右电机目标速度 -------*/
+    left_motor_speed  = 0.001f * (base_speed_mm - turn_diff);
     right_motor_speed = 0.001f * (base_speed_mm + turn_diff);
-    // 赋值给电机目标速度
-    MotorA.Target_Encoder = left_motor_speed;//左电机
-    MotorB.Target_Encoder = right_motor_speed;//右电机
+
+    MotorA.Target_Encoder = left_motor_speed;
+    MotorB.Target_Encoder = right_motor_speed;
+
+    /*------- 6. 检查是否完成一圈 -------*/
+    if (corner_count >= total_corners && state != STATE_STOP)
+    {
+        state = STATE_STOP;
+        Flag_Stop = 1;
+    }
 }
-
-
-
-
-
-

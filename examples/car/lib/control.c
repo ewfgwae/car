@@ -12,7 +12,7 @@ Encoder OriginalEncoder; 					//编码器原始数据
 bool flag_start=0;
 
 
-float Velocity_KP=400,Velocity_KI=400;	
+float Velocity_KP=2000,Velocity_KI=400;	
 int Run_Mode=1;//小车运行模式
 uint8_t Flag_Stop=1;//小车启动标志位
 
