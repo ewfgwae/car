@@ -33,6 +33,7 @@ extern float Move_X,Move_Z;						//目标速度和目标转向速度
 extern Encoder OriginalEncoder; 					//编码器原始数据   
 extern Motor_parameter MotorA,MotorB;				//左右电机相关变量
 extern uint8_t Flag_Stop;
+float PWM_Limit(float IN,float max,float min);
 
 
 void Get_Velocity_From_Encoder(int Encoder1,int Encoder2);
