@@ -23,6 +23,9 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 			key_read();
 			if(key_start_is_press())
 			{
+				buzzer_on();
+				delay_ms(500);
+				buzzer_off();
 				Flag_Stop=0;
 			}
 
