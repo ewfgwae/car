@@ -13,11 +13,11 @@ uint32_t ir_dh0_state, ir_dh1_state, ir_dh2_state, ir_dh3_state, ir_dh4_state;
 /*=============================================================================
  * 可调参数区域
  *=============================================================================*/
-float Turn90Angle  = 90;
+float Turn90Angle  = 100;
 float TurnMinAngle = 15;
 float TurnBigAngle = 15;
-float BaseSpeed = 220;
-float ForwardLimit = 90;
+float BaseSpeed = 180;
+float ForwardLimit = 140;
 
 // PID参数
 PID_t line_pid;
@@ -41,7 +41,7 @@ typedef enum {
     STATE_STRAIGHT      = 4 ,	//00100 直线
     STATE_RIGHT_SMALL   = 2 ,	//00010 小调右转
 	
-    STATE_RIGHT_90_D	= 16,	//10000 直角右转
+    STATE_RIGHT_90_D	= 1,	//10000 直角右转
     STATE_RIGHT_90_C    = 3 ,	//00011 直角右转
     STATE_RIGHT_90_B    = 7 ,	//00111 直角右转
     STATE_RIGHT_90_A    = 15,	//01111 直角右转
@@ -63,9 +63,9 @@ float turn_diff = 0;
 
 static uint8_t corner_count = 0;
 static int8_t  turn_direction = 0;
-static uint8_t total_corners = 5;
+static uint8_t total_corners;
 static uint16_t corner_period_cnt = 0;   // 【新增】消抖周期计数器
-#define CORNER_DEBOUNCE_CNT  400         // 【新增】2s / 5ms = 400
+#define CORNER_DEBOUNCE_CNT  1400 
 
 /*=============================================================================
  * 巡线主函数（v4 配重修复版：Ramp Limit 只限直道）
@@ -78,6 +78,10 @@ void IRDM_line_inspection(void)
     static float turn_diff_last = 0;
     static float d_filtered = 0;       // 唯一保留：D项不完全微分状态
     float left_motor_speed, right_motor_speed;
+	int8_t num = key_get_turn_num();
+	if (num >= 1) {
+		total_corners = num * 4;   // 1→4, 2→8, 3→12, 4→16, 5→20
+	}
 
     if (!pid_inited) {
         line_pid.error = line_pid.error_i = line_pid.error_last1 = line_pid.error_last2 = 0;
@@ -183,7 +187,7 @@ void IRDM_line_inspection(void)
             turn_diff = turn_direction * Turn90Angle;
             d_filtered = 0;  // 进弯道清D项
 
-            if (sensor_state == STATE_STRAIGHT)
+            if (sensor_state == STATE_STRAIGHT||sensor_state == STATE_LEFT_SMALL)
             {
                 state = STATE_FORWARD;
                 turn_diff = 0;

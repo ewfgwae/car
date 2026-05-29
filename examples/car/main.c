@@ -31,7 +31,6 @@ int main(void)
 	SYSCFG_DL_GPIO_init();
     Encoder_Init();
     DL_GPIO_setPins(BUZZER_PORT,  BUZZER_EN_PIN);
-	delay_ms(1000);
 
     while (1) {
 	}
