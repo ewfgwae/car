@@ -13,8 +13,8 @@ uint32_t ir_dh0_state, ir_dh1_state, ir_dh2_state, ir_dh3_state, ir_dh4_state;
 /*=============================================================================
  * 可调参数区域
  *=============================================================================*/
-float Turn90Angle  = 130;
-float ForwardLimit = 135;
+float Turn90Angle  = 135;
+float ForwardLimit = 138;
 float TurnMinAngle = 15;
 float TurnBigAngle = 15;
 float BaseSpeed = 380;
