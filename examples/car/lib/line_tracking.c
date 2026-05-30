@@ -13,11 +13,11 @@ uint32_t ir_dh0_state, ir_dh1_state, ir_dh2_state, ir_dh3_state, ir_dh4_state;
 /*=============================================================================
  * 可调参数区域
  *=============================================================================*/
-float Turn90Angle  = 100;
+float Turn90Angle  = 130;
+float ForwardLimit = 135;
 float TurnMinAngle = 15;
 float TurnBigAngle = 15;
-float BaseSpeed = 180;
-float ForwardLimit = 140;
+float BaseSpeed = 380;
 
 // PID参数
 PID_t line_pid;
@@ -65,7 +65,7 @@ static uint8_t corner_count = 0;
 static int8_t  turn_direction = 0;
 static uint8_t total_corners;
 static uint16_t corner_period_cnt = 0;   // 【新增】消抖周期计数器
-#define CORNER_DEBOUNCE_CNT  1400 
+#define CORNER_DEBOUNCE_CNT  700 
 
 /*=============================================================================
  * 巡线主函数（v4 配重修复版：Ramp Limit 只限直道）
