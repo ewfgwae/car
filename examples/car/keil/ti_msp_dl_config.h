@@ -238,26 +238,6 @@ extern "C" {
 #define MOTOR_B_2_PORT                                                   (GPIOB)
 #define MOTOR_B_2_PIN                                            (DL_GPIO_PIN_0)
 #define MOTOR_B_2_IOMUX                                          (IOMUX_PINCM12)
-/* Defines for PIN_0: GPIOB.15 with pinCMx 32 on package pin 3 */
-#define SENSOR_PIN_0_PORT                                                (GPIOB)
-#define SENSOR_PIN_0_PIN                                        (DL_GPIO_PIN_15)
-#define SENSOR_PIN_0_IOMUX                                       (IOMUX_PINCM32)
-/* Defines for PIN_1: GPIOA.17 with pinCMx 39 on package pin 10 */
-#define SENSOR_PIN_1_PORT                                                (GPIOA)
-#define SENSOR_PIN_1_PIN                                        (DL_GPIO_PIN_17)
-#define SENSOR_PIN_1_IOMUX                                       (IOMUX_PINCM39)
-/* Defines for PIN_2: GPIOA.15 with pinCMx 37 on package pin 8 */
-#define SENSOR_PIN_2_PORT                                                (GPIOA)
-#define SENSOR_PIN_2_PIN                                        (DL_GPIO_PIN_15)
-#define SENSOR_PIN_2_IOMUX                                       (IOMUX_PINCM37)
-/* Defines for PIN_3: GPIOA.12 with pinCMx 34 on package pin 5 */
-#define SENSOR_PIN_3_PORT                                                (GPIOA)
-#define SENSOR_PIN_3_PIN                                        (DL_GPIO_PIN_12)
-#define SENSOR_PIN_3_IOMUX                                       (IOMUX_PINCM34)
-/* Defines for PIN_4: GPIOB.16 with pinCMx 33 on package pin 4 */
-#define SENSOR_PIN_4_PORT                                                (GPIOB)
-#define SENSOR_PIN_4_PIN                                        (DL_GPIO_PIN_16)
-#define SENSOR_PIN_4_IOMUX                                       (IOMUX_PINCM33)
 /* Port definition for Pin Group TURN_NUM */
 #define TURN_NUM_PORT                                                    (GPIOB)
 
@@ -307,31 +287,14 @@ extern "C" {
 #define ENCODERB_E2B_IIDX                                    (DL_GPIO_IIDX_DIO2)
 #define ENCODERB_E2B_PIN                                         (DL_GPIO_PIN_2)
 #define ENCODERB_E2B_IOMUX                                       (IOMUX_PINCM15)
-/* Port definition for Pin Group I2C */
-#define I2C_PORT                                                         (GPIOB)
-
-/* Defines for SDA: GPIOB.26 with pinCMx 57 on package pin 28 */
-#define I2C_SDA_PIN                                             (DL_GPIO_PIN_26)
-#define I2C_SDA_IOMUX                                            (IOMUX_PINCM57)
-/* Defines for SCL: GPIOB.27 with pinCMx 58 on package pin 29 */
-#define I2C_SCL_PIN                                             (DL_GPIO_PIN_27)
-#define I2C_SCL_IOMUX                                            (IOMUX_PINCM58)
-/* Defines for SER1: GPIOA.9 with pinCMx 20 on package pin 55 */
-#define SER_SER1_PORT                                                    (GPIOA)
-#define SER_SER1_PIN                                             (DL_GPIO_PIN_9)
-#define SER_SER1_IOMUX                                           (IOMUX_PINCM20)
-/* Defines for SER4: GPIOB.4 with pinCMx 17 on package pin 52 */
-#define SER_SER4_PORT                                                    (GPIOB)
-#define SER_SER4_PIN                                             (DL_GPIO_PIN_4)
-#define SER_SER4_IOMUX                                           (IOMUX_PINCM17)
-/* Defines for SER5: GPIOB.5 with pinCMx 18 on package pin 53 */
-#define SER_SER5_PORT                                                    (GPIOB)
-#define SER_SER5_PIN                                             (DL_GPIO_PIN_5)
-#define SER_SER5_IOMUX                                           (IOMUX_PINCM18)
-/* Defines for SER6: GPIOA.8 with pinCMx 19 on package pin 54 */
-#define SER_SER6_PORT                                                    (GPIOA)
-#define SER_SER6_PIN                                             (DL_GPIO_PIN_8)
-#define SER_SER6_IOMUX                                           (IOMUX_PINCM19)
+/* Defines for SDA: GPIOA.12 with pinCMx 34 on package pin 5 */
+#define I2C_SDA_PORT                                                     (GPIOA)
+#define I2C_SDA_PIN                                             (DL_GPIO_PIN_12)
+#define I2C_SDA_IOMUX                                            (IOMUX_PINCM34)
+/* Defines for SCL: GPIOB.16 with pinCMx 33 on package pin 4 */
+#define I2C_SCL_PORT                                                     (GPIOB)
+#define I2C_SCL_PIN                                             (DL_GPIO_PIN_16)
+#define I2C_SCL_IOMUX                                            (IOMUX_PINCM33)
 
 
 

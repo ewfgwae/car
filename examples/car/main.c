@@ -8,6 +8,7 @@
 #include "encoder.h"
 #include "control.h"
 #include "jy931.h"
+#include "hardware_iic.h"
 
 volatile float MA_RPM = 0.0f, MB_RPM = 0.0f;
 

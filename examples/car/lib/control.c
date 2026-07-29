@@ -5,21 +5,24 @@
 #include "key.h"
 #include "delay.h"
 #include "jy931.h"
+#include "hardware_iic.h"
 
 
 uint8_t CCD_count,ELE_count;
 int Sensor_Left,Sensor_Middle,Sensor_Right,Sensor;
-Encoder OriginalEncoder; 					//编码器原始数据   
+Encoder OriginalEncoder;
 bool flag_start=0;
 uint32_t uiTick = 0;
 
 
 float Velocity_KP=6000,Velocity_KI=2000;	
-int Run_Mode=1;//小车运行模式
-uint8_t Flag_Stop=1;//小车启动标志位
+int Run_Mode=1;
+uint8_t Flag_Stop=1;
 
 void TIMER_ENCODER_READ_INST_IRQHandler(void)
 {
+    static unsigned char gw_analog[8];
+    unsigned char gw_digital;
 	if(DL_TimerA_getPendingInterrupt(TIMER_ENCODER_READ_INST))
 	{
 
@@ -42,6 +45,7 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 			//计算左右电机对应的PWM
 			MotorA.Motor_Pwm = Incremental_PI_Left(MotorA.Current_Encoder,MotorA.Target_Encoder);	
 			MotorB.Motor_Pwm = Incremental_PI_Right(MotorB.Current_Encoder,MotorB.Target_Encoder);
+
 			if(!Flag_Stop)
 			{
 				Set_PWM(-MotorA.Motor_Pwm,MotorB.Motor_Pwm);

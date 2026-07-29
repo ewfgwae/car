@@ -352,14 +352,14 @@ SYSCONFIG_WEAK void SYSCFG_DL_PWM_0_init(void) {
 		DL_TIMERA_CAPTURE_COMPARE_0_INDEX);
 
     DL_TimerA_setCaptCompUpdateMethod(PWM_0_INST, DL_TIMER_CC_UPDATE_METHOD_IMMEDIATE, DL_TIMERA_CAPTURE_COMPARE_0_INDEX);
-    DL_TimerA_setCaptureCompareValue(PWM_0_INST, 0, DL_TIMER_CC_0_INDEX);
+    DL_TimerA_setCaptureCompareValue(PWM_0_INST, 3000, DL_TIMER_CC_0_INDEX);
 
     DL_TimerA_setCaptureCompareOutCtl(PWM_0_INST, DL_TIMER_CC_OCTL_INIT_VAL_LOW,
 		DL_TIMER_CC_OCTL_INV_OUT_DISABLED, DL_TIMER_CC_OCTL_SRC_FUNCVAL,
 		DL_TIMERA_CAPTURE_COMPARE_1_INDEX);
 
     DL_TimerA_setCaptCompUpdateMethod(PWM_0_INST, DL_TIMER_CC_UPDATE_METHOD_IMMEDIATE, DL_TIMERA_CAPTURE_COMPARE_1_INDEX);
-    DL_TimerA_setCaptureCompareValue(PWM_0_INST, 0, DL_TIMER_CC_1_INDEX);
+    DL_TimerA_setCaptureCompareValue(PWM_0_INST, 4200, DL_TIMER_CC_1_INDEX);
 
     DL_TimerA_enableClock(PWM_0_INST);
 
@@ -494,8 +494,14 @@ SYSCONFIG_WEAK void SYSCFG_DL_I2C_0_init(void) {
         DL_I2C_ANALOG_GLITCH_FILTER_WIDTH_50NS);
     DL_I2C_enableAnalogGlitchFilter(I2C_0_INST);
 
+    /* Configure Controller Mode */
+    DL_I2C_resetControllerTransfer(I2C_0_INST);
+    DL_I2C_setTimerPeriod(I2C_0_INST, 31);
+    DL_I2C_setControllerTXFIFOThreshold(I2C_0_INST, DL_I2C_TX_FIFO_LEVEL_BYTES_7);
+    DL_I2C_setControllerRXFIFOThreshold(I2C_0_INST, DL_I2C_RX_FIFO_LEVEL_BYTES_8);
+    DL_I2C_enableControllerClockStretching(I2C_0_INST);
 
-
+    DL_I2C_enableController(I2C_0_INST);
 
 }
 static const DL_I2C_ClockConfig gMPU_I2CClockConfig = {
@@ -574,8 +580,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_UART_MPU_init(void)
     DL_UART_Main_setOversampling(UART_MPU_INST, DL_UART_OVERSAMPLING_RATE_16X);
     DL_UART_Main_setBaudRateDivisor(UART_MPU_INST, UART_MPU_IBRD_32_MHZ_921600_BAUD, UART_MPU_FBRD_32_MHZ_921600_BAUD);
 
-    DL_UART_Main_enableInterrupt(UART_MPU_INST, DL_UART_MAIN_INTERRUPT_RX);
-    NVIC_SetPriority(UART_MPU_INST_INT_IRQN, 0);
+
 
     DL_UART_Main_enable(UART_MPU_INST);
 }
