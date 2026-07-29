@@ -47,7 +47,7 @@ void p_s(char *string,  ...)
     p = buffer;
     while (*p)
     {
-        DL_UART_transmitDataBlocking(UART_0_INST,  *p);
+        DL_UART_Main_transmitDataBlocking(UART_0_INST,  *p);
         p++;
     }
     

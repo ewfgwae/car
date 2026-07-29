@@ -13,20 +13,20 @@ uint32_t ir_dh0_state, ir_dh1_state, ir_dh2_state, ir_dh3_state, ir_dh4_state;
 /*=============================================================================
  * 可调参数区域
  *=============================================================================*/
-float Turn90Angle  = 126;
+float Turn90Angle  = 125;
 float ForwardLimit = 128;
 float TurnMinAngle = 15;
 float TurnBigAngle = 15;
-float BaseSpeed = 380;
+float BaseSpeed = 340;
 
 // PID参数
 PID_t line_pid;
-float Line_Kp = 30.0f;
+float Line_Kp = 20.0f;
 float Line_Ki = 0.0f;
 float Line_Kd = 35.0f;
 
 // 输出变化率限制（Ramp Limit）——只在直道生效
-float RAMP_LIMIT = 15.0f;
+float RAMP_LIMIT = 20.0f;
 
 /*=============================================================================
  * 传感器状态定义（识别到黑线为1）
@@ -97,11 +97,11 @@ void IRDM_line_inspection(void)
         corner_period_cnt++;
     }
 
-    ir_dh4_state = DL_GPIO_readPins(SENSOR_PORT, SENSOR_PIN_4_PIN) ? 1 : 0;
-    ir_dh3_state = DL_GPIO_readPins(SENSOR_PORT, SENSOR_PIN_3_PIN) ? 1 : 0;
-    ir_dh2_state = DL_GPIO_readPins(SENSOR_PORT, SENSOR_PIN_2_PIN) ? 1 : 0;
-    ir_dh1_state = DL_GPIO_readPins(SENSOR_PORT, SENSOR_PIN_1_PIN) ? 1 : 0;
-    ir_dh0_state = DL_GPIO_readPins(SENSOR_PORT, SENSOR_PIN_0_PIN) ? 1 : 0;
+    ir_dh4_state = DL_GPIO_readPins(SENSOR_PIN_4_PORT, SENSOR_PIN_4_PIN) ? 1 : 0;
+    ir_dh3_state = DL_GPIO_readPins(SENSOR_PIN_3_PORT, SENSOR_PIN_3_PIN) ? 1 : 0;
+    ir_dh2_state = DL_GPIO_readPins(SENSOR_PIN_2_PORT, SENSOR_PIN_2_PIN) ? 1 : 0;
+    ir_dh1_state = DL_GPIO_readPins(SENSOR_PIN_1_PORT, SENSOR_PIN_1_PIN) ? 1 : 0;
+    ir_dh0_state = DL_GPIO_readPins(SENSOR_PIN_0_PORT, SENSOR_PIN_0_PIN) ? 1 : 0;
 
     int sensor_state = (ir_dh0_state << 4) | (ir_dh1_state << 3) |
                        (ir_dh2_state << 2) | (ir_dh3_state << 1) | ir_dh4_state;
@@ -190,10 +190,8 @@ void IRDM_line_inspection(void)
             if (sensor_state == STATE_STRAIGHT||sensor_state == STATE_LEFT_SMALL)
             {
                 state = STATE_FORWARD;
-                turn_diff = 0;
                 line_pid.error_last1 = 0;
                 d_filtered = 0;
-                turn_diff_last = 0;
             }
             break;
         }
@@ -217,23 +215,19 @@ void IRDM_line_inspection(void)
     }
 
     /*=====================================================================
-     * Ramp Limit：唯一保留的输出限速，防止电机突变
+     * Ramp Limit：全局生效，直道和弯道都限速，防止任何状态下的加速度突变
      *=====================================================================*/
     float turn_diff_filtered = turn_diff;
+    float delta = turn_diff - turn_diff_last;
 
-    if (state == STATE_FORWARD) {
-        float delta = turn_diff - turn_diff_last;
-        if (delta > RAMP_LIMIT) {
-            delta = RAMP_LIMIT;
-        } else if (delta < -RAMP_LIMIT) {
-            delta = -RAMP_LIMIT;
-        }
-        turn_diff_filtered = turn_diff_last + delta;
-        turn_diff_last = turn_diff_filtered;
-    } else {
-        turn_diff_last = turn_diff;
+    if (delta > RAMP_LIMIT) {
+        delta = RAMP_LIMIT;
+    } else if (delta < -RAMP_LIMIT) {
+        delta = -RAMP_LIMIT;
     }
-
+    turn_diff_filtered = turn_diff_last + delta;
+    turn_diff_last = turn_diff_filtered;
+	
     /*------- 速度计算 -------*/
     if (fabs(turn_diff_filtered) < ForwardLimit)
     {

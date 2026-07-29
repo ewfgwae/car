@@ -4,22 +4,25 @@
 #include "motor.h"
 #include "key.h"
 #include "delay.h"
+#include "jy931.h"
 
 
 uint8_t CCD_count,ELE_count;
 int Sensor_Left,Sensor_Middle,Sensor_Right,Sensor;
 Encoder OriginalEncoder; 					//编码器原始数据   
 bool flag_start=0;
+uint32_t uiTick = 0;
 
 
-float Velocity_KP=6000,Velocity_KI=3000;	
+float Velocity_KP=6000,Velocity_KI=2000;	
 int Run_Mode=1;//小车运行模式
 uint8_t Flag_Stop=1;//小车启动标志位
 
 void TIMER_ENCODER_READ_INST_IRQHandler(void)
 {
-    if(DL_TimerA_getPendingInterrupt(TIMER_ENCODER_READ_INST))
-    {
+	if(DL_TimerA_getPendingInterrupt(TIMER_ENCODER_READ_INST))
+	{
+
 			key_read();
 			if(key_start_is_press())
 			{
@@ -36,16 +39,17 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 			{
 				IRDM_line_inspection();
 			}
-//			//计算左右电机对应的PWM
+			//计算左右电机对应的PWM
 			MotorA.Motor_Pwm = Incremental_PI_Left(MotorA.Current_Encoder,MotorA.Target_Encoder);	
 			MotorB.Motor_Pwm = Incremental_PI_Right(MotorB.Current_Encoder,MotorB.Target_Encoder);
-//			p_s("MotorA=%.2f,MotorB=%.2f\r\n",MotorA.Motor_Pwm,MotorB.Motor_Pwm);
 			if(!Flag_Stop)
 			{
 				Set_PWM(-MotorA.Motor_Pwm,MotorB.Motor_Pwm);
-			}else Set_PWM(0,0);
+			}
+			else Set_PWM(0,0);
 
-    }
+	}
+
 }
 
 /**************************************************************************
