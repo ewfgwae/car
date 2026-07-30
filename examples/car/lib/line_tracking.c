@@ -84,6 +84,7 @@ void IRDM_line_inspection(void)
     static int   last_direction = 0;
     static uint8_t pid_inited = 0;
     static float turn_diff_last = 0.0f;
+    static float base_speed_last = 0.0f;
     static float d_filtered = 0.0f;
     float left_motor_speed, right_motor_speed;
     int8_t num = key_get_turn_num();
@@ -156,7 +157,7 @@ void IRDM_line_inspection(void)
                 else if (last_direction == -1)
                     turn_diff = TurnMinAngle;
                 else
-                    turn_diff = 0.0f;
+                turn_diff = TurnMinAngle;
             }
             break;
         }
@@ -203,6 +204,17 @@ void IRDM_line_inspection(void)
         base_speed_mm = BaseSpeed - (BaseSpeed * (fabsf(turn_diff_filtered) / ForwardLimit));
     } else {
         base_speed_mm = 0.0f;
+    }
+
+    {
+        float spd_delta = base_speed_mm - base_speed_last;
+        float SPEED_RAMP = 20.0f;
+        if (spd_delta > SPEED_RAMP)
+            spd_delta = SPEED_RAMP;
+        else if (spd_delta < -SPEED_RAMP)
+            spd_delta = -SPEED_RAMP;
+        base_speed_mm = base_speed_last + spd_delta;
+        base_speed_last = base_speed_mm;
     }
 
     left_motor_speed  = 0.001f * (base_speed_mm - turn_diff_filtered);

@@ -25,7 +25,8 @@ int main(void)
     OLED_Init();
 	JY931_Init();
 	OLED_Init();
-
+	OLED_Clear();
+	OLED_Update();
 	while (Ping()) {
 		delay_ms(10);
 	}

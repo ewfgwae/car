@@ -8,6 +8,19 @@
 #include "hardware_iic.h"
 #include "OLED.h"
 #include "MyI2C.h"
+#include "PID.h"
+
+extern float Turn90Angle;
+extern float ForwardLimit;
+extern float TurnMinAngle;
+extern float BaseSpeed;
+
+extern PID_t line_pid;
+extern float Line_Kp;
+extern float Line_Ki;
+extern float Line_Kd;
+
+extern float RAMP_LIMIT;
 
 
 uint8_t CCD_count,ELE_count;
@@ -35,32 +48,67 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 	} else {
 		i = 0;
 	}
- if(DL_TimerA_getPendingInterrupt(TIMER_ENCODER_READ_INST))
-    {
-		key_read();
-		if(key_start_is_press())
+	
+	
+	
+	 if(DL_TimerA_getPendingInterrupt(TIMER_ENCODER_READ_INST))
 		{
-			Flag_Stop=0;
-			run_seconds = 0;
-			i = 0;
-		}
+			key_read();
+			if (key_get_turn_num() == 1) {
+				
+				Turn90Angle  = 125.0f;
+				ForwardLimit = 200.0f;
+				TurnMinAngle = 15.0f;
+				BaseSpeed    = 370.0f;
+				Line_Kp = 100.0f;
+				Line_Ki = 1.0f;
+				Line_Kd = 35.0f;
+				RAMP_LIMIT = 20.0f;
+				Velocity_KP=6000;
+				Velocity_KI=2000;
+				
+				OLED_Clear();
+				OLED_ShowString(0, 0, "mode1", OLED_8X16);
+				OLED_Update();
+			} else if (key_get_turn_num() == 2) {
+				Turn90Angle  = 125.0f;
+				ForwardLimit = 150.0f;
+				TurnMinAngle = 15.0f;
+				BaseSpeed    = 250.0f;
+				Line_Kp = 70.0f;
+				Line_Ki = 1.0f;
+				Line_Kd = 40.0f;
+				RAMP_LIMIT = 15.0f;
+				Velocity_KP=4000;
+				Velocity_KI=2000;
+				OLED_Clear();
+				OLED_ShowString(0, 0, "mode2", OLED_8X16);
+				OLED_Update();
+			}
+			if(key_start_is_press())
+			{
+				Flag_Stop=0;
+				run_seconds = 0;
+				i = 0;
+			}
 
-		
-		Get_Velocity_From_Encoder(-Get_Encoder_countA,-Get_Encoder_countB);
-		Get_Encoder_countA=Get_Encoder_countB=0;
-		if(!Flag_Stop)
-		{
-			IRDM_line_inspection();
-		}
-		//计算左右电机对应的PWM
-		MotorA.Motor_Pwm = Incremental_PI_Left(MotorA.Current_Encoder,MotorA.Target_Encoder);	
-		MotorB.Motor_Pwm = Incremental_PI_Right(MotorB.Current_Encoder,-MotorB.Target_Encoder);
-		if(!Flag_Stop)
-		{
-			Set_PWM(MotorA.Motor_Pwm,MotorB.Motor_Pwm);
-		}
-		else Set_PWM(0,0);
-	}	
+			
+			
+			Get_Velocity_From_Encoder(-Get_Encoder_countA,-Get_Encoder_countB);
+			Get_Encoder_countA=Get_Encoder_countB=0;
+			if(!Flag_Stop)
+			{
+				IRDM_line_inspection();
+			}
+			//计算左右电机对应的PWM
+			MotorA.Motor_Pwm = Incremental_PI_Left(MotorA.Current_Encoder,MotorA.Target_Encoder);	
+			MotorB.Motor_Pwm = Incremental_PI_Right(MotorB.Current_Encoder,-MotorB.Target_Encoder);
+			if(!Flag_Stop)
+			{
+				Set_PWM(MotorA.Motor_Pwm,MotorB.Motor_Pwm);
+			}
+			else Set_PWM(0,0);
+		}	
 }
 
 /**************************************************************************
