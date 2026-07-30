@@ -6,6 +6,8 @@
 #include "delay.h"
 #include "jy931.h"
 #include "hardware_iic.h"
+#include "OLED.h"
+#include "MyI2C.h"
 
 
 uint8_t CCD_count,ELE_count;
@@ -13,7 +15,9 @@ int Sensor_Left,Sensor_Middle,Sensor_Right,Sensor;
 Encoder OriginalEncoder;
 bool flag_start=0;
 uint32_t uiTick = 0;
-
+uint8_t run_seconds = 0;
+extern uint8_t flag_oled;
+uint8_t i=0;
 
 float Velocity_KP=6000,Velocity_KI=2000;	
 int Run_Mode=1;
@@ -21,39 +25,42 @@ uint8_t Flag_Stop=1;
 
 void TIMER_ENCODER_READ_INST_IRQHandler(void)
 {
-    static unsigned char gw_analog[8];
-    unsigned char gw_digital;
-	if(DL_TimerA_getPendingInterrupt(TIMER_ENCODER_READ_INST))
-	{
-
-			key_read();
-			if(key_start_is_press())
-			{
-				buzzer_on();
-				delay_ms(500);
-				buzzer_off();
-				Flag_Stop=0;
-			}
-
-			
-			Get_Velocity_From_Encoder(-Get_Encoder_countA,-Get_Encoder_countB);
-			Get_Encoder_countA=Get_Encoder_countB=0;
-			if(!Flag_Stop)
-			{
-				IRDM_line_inspection();
-			}
-			//计算左右电机对应的PWM
-			MotorA.Motor_Pwm = Incremental_PI_Left(MotorA.Current_Encoder,MotorA.Target_Encoder);	
-			MotorB.Motor_Pwm = Incremental_PI_Right(MotorB.Current_Encoder,MotorB.Target_Encoder);
-
-			if(!Flag_Stop)
-			{
-				Set_PWM(-MotorA.Motor_Pwm,MotorB.Motor_Pwm);
-			}
-			else Set_PWM(0,0);
-
+	i++;
+	if (!Flag_Stop) {
+		if (i >= 100) {
+			run_seconds++;
+			flag_oled = 1;
+			i = 0;
+		}
+	} else {
+		i = 0;
 	}
+ if(DL_TimerA_getPendingInterrupt(TIMER_ENCODER_READ_INST))
+    {
+		key_read();
+		if(key_start_is_press())
+		{
+			Flag_Stop=0;
+			run_seconds = 0;
+			i = 0;
+		}
 
+		
+		Get_Velocity_From_Encoder(-Get_Encoder_countA,-Get_Encoder_countB);
+		Get_Encoder_countA=Get_Encoder_countB=0;
+		if(!Flag_Stop)
+		{
+			IRDM_line_inspection();
+		}
+		//计算左右电机对应的PWM
+		MotorA.Motor_Pwm = Incremental_PI_Left(MotorA.Current_Encoder,MotorA.Target_Encoder);	
+		MotorB.Motor_Pwm = Incremental_PI_Right(MotorB.Current_Encoder,-MotorB.Target_Encoder);
+		if(!Flag_Stop)
+		{
+			Set_PWM(MotorA.Motor_Pwm,MotorB.Motor_Pwm);
+		}
+		else Set_PWM(0,0);
+	}	
 }
 
 /**************************************************************************

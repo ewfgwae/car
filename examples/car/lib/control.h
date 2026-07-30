@@ -5,7 +5,7 @@
 
 extern int Sensor_Left,Sensor_Middle,Sensor_Right,Sensor;
 #define EncoderMultiples  2				//编码器倍频数，取决于编码器初始化设置
-#define CONTROL_FREQUENCY 200			//编码器数据读取频率
+#define CONTROL_FREQUENCY 100			//编码器数据读取频率(10ms定时器=100Hz)
 #define	Black_WheelDiameter   0.065f	//轮胎直径
 #define Perimeter	0.204203519			//轮子周长(单位:m)
 #define MOTOR_GEAR_RATIO       28.0f    // 电机减速比
@@ -33,6 +33,7 @@ extern float Move_X,Move_Z;						//目标速度和目标转向速度
 extern Encoder OriginalEncoder; 					//编码器原始数据   
 extern Motor_parameter MotorA,MotorB;				//左右电机相关变量
 extern uint8_t Flag_Stop;
+extern uint8_t run_seconds;
 float PWM_Limit(float IN,float max,float min);
 
 

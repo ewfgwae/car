@@ -18,9 +18,6 @@ void GW_I2C_Init(void)
     DL_I2C_setControllerRXFIFOThreshold(I2C_0_INST, DL_I2C_RX_FIFO_LEVEL_BYTES_8);
     DL_I2C_enableControllerClockStretching(I2C_0_INST);
     DL_I2C_enableController(I2C_0_INST);
-
-    p_s("GW_I2C_Init done, MCR=0x%08X\r\n",
-        (unsigned int)I2C_0_INST->MASTER.MCR);
 }
 
 unsigned char hardware_IIC_WirteByte(unsigned char Salve_Adress,unsigned char Reg_Address, unsigned char dat)
@@ -52,24 +49,17 @@ unsigned char hardware_IIC_WirteBytes(unsigned char Salve_Adress,unsigned char R
 unsigned char hardware_IIC_ReadByte(unsigned char Salve_Adress,unsigned char Reg_Address)
 {
     unsigned char data;
-    uint32_t status_tx, status_rx;
     DL_I2C_fillControllerTXFIFO(I2C_0_INST, &Reg_Address, 1);
     while (!(DL_I2C_getControllerStatus(I2C_0_INST) & DL_I2C_CONTROLLER_STATUS_IDLE));
     DL_I2C_startControllerTransfer(I2C_0_INST, Salve_Adress, DL_I2C_CONTROLLER_DIRECTION_TX, 1);
     while (DL_I2C_getControllerStatus(I2C_0_INST) & DL_I2C_CONTROLLER_STATUS_BUSY_BUS);
     while (!(DL_I2C_getControllerStatus(I2C_0_INST) & DL_I2C_CONTROLLER_STATUS_IDLE));
-    status_tx = DL_I2C_getControllerStatus(I2C_0_INST);
     DL_I2C_flushControllerTXFIFO(I2C_0_INST);
 
     DL_I2C_startControllerTransfer(I2C_0_INST, Salve_Adress, DL_I2C_CONTROLLER_DIRECTION_RX, 1);
     while (DL_I2C_getControllerStatus(I2C_0_INST) & DL_I2C_CONTROLLER_STATUS_BUSY_BUS);
     while (!(DL_I2C_getControllerStatus(I2C_0_INST) & DL_I2C_CONTROLLER_STATUS_IDLE));
-    status_rx = DL_I2C_getControllerStatus(I2C_0_INST);
     data = DL_I2C_receiveControllerData(I2C_0_INST);
-
-    p_s("I2C RD ADDR=0x%02X REG=0x%02X TX_S=0x%04X RX_S=0x%04X D=0x%02X\r\n",
-        (unsigned int)Salve_Adress, (unsigned int)Reg_Address,
-        (unsigned int)status_tx, (unsigned int)status_rx, (unsigned int)data);
     return data;
 }
 unsigned char hardware_IIC_ReadBytes(unsigned char Salve_Adress,unsigned char Reg_Address,unsigned char *data,unsigned char len)
@@ -122,18 +112,12 @@ unsigned char IIC_Get_Digtal(void)
 {
     unsigned char dat;
     dat=IIC_ReadByte(GW_GRAY_ADDR_DEF,GW_GRAY_DIGITAL_MODE);
-    p_s("Digital %d-%d-%d-%d-%d-%d-%d-%d\r\n",
-        (dat>>0)&0x01,(dat>>1)&0x01,(dat>>2)&0x01,(dat>>3)&0x01,
-        (dat>>4)&0x01,(dat>>5)&0x01,(dat>>6)&0x01,(dat>>7)&0x01);
     return dat;
 }
 unsigned char IIC_Get_Anolog(unsigned char * Result,unsigned char len)
 {
     if(IIC_ReadBytes(GW_GRAY_ADDR_DEF,GW_GRAY_ANALOG_BASE_,Result,len))
     {
-        p_s("Anolog %d-%d-%d-%d-%d-%d-%d-%d\r\n",
-            Result[0],Result[1],Result[2],Result[3],
-            Result[4],Result[5],Result[6],Result[7]);
         return 1;
     }
     else return 0;
@@ -152,9 +136,6 @@ unsigned char IIC_Get_Normalize(unsigned char * Result,unsigned char len)
     IIC_WriteBytes(GW_GRAY_ADDR_DEF,GW_GRAY_ANALOG_NORMALIZE ,&IIC_write_buff[1], 2 );
     delay_ms(10);
     IIC_ReadBytes(GW_GRAY_ADDR_DEF, GW_GRAY_ANALOG_MODE, Result , 8 );
-    p_s("Normalize %d-%d-%d-%d-%d-%d-%d-%d\r\n",
-        Result[0],Result[1],Result[2],Result[3],
-        Result[4],Result[5],Result[6],Result[7]);
     IIC_write_buff[0]=GW_GRAY_ANALOG_NORMALIZE;
     IIC_write_buff[1]=0x00;
     IIC_WriteBytes(GW_GRAY_ADDR_DEF,GW_GRAY_ANALOG_NORMALIZE,&IIC_write_buff[1], 2 );

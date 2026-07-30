@@ -9,22 +9,42 @@
 #include "control.h"
 #include "jy931.h"
 #include "hardware_iic.h"
+#include "OLED.h"
 
 volatile float MA_RPM = 0.0f, MB_RPM = 0.0f;
 
 float RotationalA_target = 0;
 float RotationalB_target = 0;
-
+uint8_t flag_oled = 0;
 int main(void)
 {
 
-    SYSCFG_DL_init();
-	SYSCFG_DL_GPIO_init();
-    Encoder_Init();
-    DL_GPIO_setPins(BUZZER_PORT,  BUZZER_EN_PIN);
-
+    SYSCFG_DL_init(); 
+	GW_I2C_Init();
+	Encoder_Init();
+    OLED_Init();
 	JY931_Init();
+	OLED_Init();
+
+	while (Ping()) {
+		delay_ms(10);
+	}
+
 
     while (1) {
-	}
+		if(flag_oled == 1) {
+			flag_oled = 0;
+			OLED_Clear();
+			OLED_ShowString(0, 0, "Time:", OLED_8X16);
+			OLED_ShowNum(40, 0, run_seconds, 3, OLED_8X16);
+			OLED_ShowString(64, 0, "s", OLED_8X16);
+			OLED_Update();
+		}
+    }
 }
+
+
+void SysTick_Handler()
+{
+}
+

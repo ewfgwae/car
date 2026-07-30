@@ -5,8 +5,8 @@ uint32_t gpio_interrup1,gpio_interrup2;
 int volatile Get_Encoder_countA,Get_Encoder_countB;
 void Encoder_Init()
 {
-	DL_TimerA_setCaptureCompareValue(PWM_0_INST, 0, DL_TIMER_CC_0_INDEX);
-	DL_TimerA_setCaptureCompareValue(PWM_0_INST, 0, DL_TIMER_CC_1_INDEX);
+	DL_TimerA_setCaptureCompareValue(PWM_0_INST, 3000, DL_TIMER_CC_0_INDEX);
+	DL_TimerA_setCaptureCompareValue(PWM_0_INST, 3000, DL_TIMER_CC_1_INDEX);
 	DL_Timer_startCounter(PWM_0_INST);
 	NVIC_ClearPendingIRQ(ENCODERA_INT_IRQN);
     NVIC_ClearPendingIRQ(ENCODERB_INT_IRQN);
