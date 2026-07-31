@@ -73,7 +73,7 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 				Velocity_KI=2000;
 				
 				OLED_Clear();
-				OLED_ShowString(0, 0, "mode1", OLED_8X16);
+				OLED_ShowString(0, 0, "mod1", OLED_32X64);
 				OLED_Update();
 			} else if (key_get_turn_num() == 2) {
 				key_get_num=2;
@@ -88,7 +88,7 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 				Velocity_KP=4000;
 				Velocity_KI=1000;
 				OLED_Clear();
-				OLED_ShowString(0, 0, "mode2", OLED_8X16);
+				OLED_ShowString(0, 0, "mod2", OLED_32X64);
 				OLED_Update();
 			}
 			if(key_start_is_press())

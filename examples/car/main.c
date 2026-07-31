@@ -30,14 +30,16 @@ int main(void)
 	while (Ping()) {
 		delay_ms(10);
 	}
-
+                                                                                                                                                                                                  
     while (1) {
+	
+		
+	
 	if(flag_oled == 1) {
 			flag_oled = 0;
 			OLED_Clear();
-			OLED_ShowString(0, 0, "Time:", OLED_8X16);
-			OLED_ShowNum(40, 0, run_seconds, 3, OLED_8X16);
-			OLED_ShowString(64, 0, "s", OLED_8X16);
+			OLED_ShowNum(0, 0, run_seconds, 3, OLED_32X64);
+			OLED_ShowString(96, 0, "S", OLED_32X64);
 			OLED_Update();
 		}
     }

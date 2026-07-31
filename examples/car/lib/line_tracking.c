@@ -11,6 +11,9 @@
 
 Motor_parameter MotorA, MotorB;
 
+extern uint8_t key_get_num;
+
+
 /*=============================================================================
  * 可调参数区域
  *=============================================================================*/
@@ -165,7 +168,15 @@ void IRDM_line_inspection(void)
 
         case STATE_STOP:
         {
-			Set_PWM(0,0);
+			if(key_get_num==1)
+			{
+				Set_PWM(0,0);
+			}
+			else if(key_get_num==2)
+			{
+				
+			}
+			
             if (stop_straight_cnt > 0) {
                 stop_straight_cnt--;
                 turn_diff = 0.0f;
