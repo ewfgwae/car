@@ -31,9 +31,8 @@ int main(void)
 		delay_ms(10);
 	}
 
-
     while (1) {
-		if(flag_oled == 1) {
+	if(flag_oled == 1) {
 			flag_oled = 0;
 			OLED_Clear();
 			OLED_ShowString(0, 0, "Time:", OLED_8X16);

@@ -31,7 +31,7 @@ uint32_t uiTick = 0;
 uint8_t run_seconds = 0;
 extern uint8_t flag_oled;
 uint8_t i=0;
-
+uint8_t key_get_num;
 float Velocity_KP=6000,Velocity_KI=2000;	
 int Run_Mode=1;
 uint8_t Flag_Stop=1;
@@ -48,6 +48,11 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 	} else {
 		i = 0;
 	}
+	if(run_seconds>=12||key_get_num==1)
+	{
+		BaseSpeed = 100.0f;
+
+	}
 	
 	
 	
@@ -55,11 +60,11 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 		{
 			key_read();
 			if (key_get_turn_num() == 1) {
-				
+				key_get_num=1;
 				Turn90Angle  = 125.0f;
 				ForwardLimit = 200.0f;
 				TurnMinAngle = 15.0f;
-				BaseSpeed    = 370.0f;
+				BaseSpeed    = 600.0f;
 				Line_Kp = 100.0f;
 				Line_Ki = 1.0f;
 				Line_Kd = 35.0f;
@@ -71,6 +76,7 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 				OLED_ShowString(0, 0, "mode1", OLED_8X16);
 				OLED_Update();
 			} else if (key_get_turn_num() == 2) {
+				key_get_num=2;
 				Turn90Angle  = 125.0f;
 				ForwardLimit = 150.0f;
 				TurnMinAngle = 15.0f;
@@ -178,8 +184,8 @@ int Incremental_PI_Left (float Encoder,float Target)
 	 Bias=Target-Encoder;                					//计算偏差
 	 Pwm+=Velocity_KP*(Bias-Last_bias)+Velocity_KI*Bias;   	//增量式PI控制器
 	 if(Flag_Stop) Pwm=0;
-	 if(Pwm>3700)Pwm=3700;
-	 if(Pwm<-3700)Pwm=-3700;
+	 if(Pwm>4000)Pwm=4000;
+	 if(Pwm<-4000)Pwm=-4000;
 	 Last_bias=Bias;	                   					//保存上一次偏差 
 	 return Pwm;                         					//增量输出
 }
@@ -191,8 +197,8 @@ int Incremental_PI_Right (float Encoder,float Target)
 	 Bias=Target-Encoder;                					//计算偏差
 	 Pwm+=Velocity_KP*(Bias-Last_bias)+Velocity_KI*Bias;   	//增量式PI控制器
 	if(Flag_Stop) Pwm=0;
-	 if(Pwm>3700)Pwm=3700;
-	 if(Pwm<-3700)Pwm=-3700;
+	 if(Pwm>4000)Pwm=4000;
+	 if(Pwm<-4000)Pwm=-4000;
 	 Last_bias=Bias;	                   					//保存上一次偏差 
 	 return Pwm;                         					//增量输出
 }

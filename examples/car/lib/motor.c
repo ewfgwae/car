@@ -22,8 +22,8 @@ void Set_PWM(int pwmL,int pwmR)
     }
     else
     {
-        DL_GPIO_clearPins(MOTOR_A_1_PORT,MOTOR_A_1_PIN);
-        DL_GPIO_clearPins(MOTOR_A_2_PORT,MOTOR_A_2_PIN);
+        DL_GPIO_setPins(MOTOR_A_1_PORT,MOTOR_A_1_PIN);
+        DL_GPIO_setPins(MOTOR_A_2_PORT,MOTOR_A_2_PIN);
         DL_Timer_setCaptureCompareValue(TIMA0,0,GPIO_PWM_0_C0_IDX);
     }
     if(pwmR>0)
@@ -40,8 +40,8 @@ void Set_PWM(int pwmL,int pwmR)
     }
     else
     {
-        DL_GPIO_clearPins(MOTOR_B_1_PORT,MOTOR_B_1_PIN);
-        DL_GPIO_clearPins(MOTOR_B_2_PORT,MOTOR_B_2_PIN);
+        DL_GPIO_setPins(MOTOR_B_1_PORT,MOTOR_B_1_PIN);
+        DL_GPIO_setPins(MOTOR_B_2_PORT,MOTOR_B_2_PIN);
         DL_Timer_setCaptureCompareValue(TIMA0,0,GPIO_PWM_0_C1_IDX);
     }
 }

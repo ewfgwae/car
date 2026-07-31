@@ -7,6 +7,7 @@
 #include "control.h"
 #include "hardware_iic.h"
 #include <math.h>
+#include "motor.h"
 
 Motor_parameter MotorA, MotorB;
 
@@ -127,7 +128,7 @@ void IRDM_line_inspection(void)
         }
     }
 
-    if (stop_debounce_cnt >= STOP_DEBOUNCE && state != STATE_STOP) {
+    if (stop_debounce_cnt >= STOP_DEBOUNCE && state != STATE_STOP && run_seconds > 10) {
         state = STATE_STOP;
         stop_straight_cnt = 5;
     }
@@ -164,6 +165,7 @@ void IRDM_line_inspection(void)
 
         case STATE_STOP:
         {
+			Set_PWM(0,0);
             if (stop_straight_cnt > 0) {
                 stop_straight_cnt--;
                 turn_diff = 0.0f;
@@ -199,6 +201,10 @@ void IRDM_line_inspection(void)
     }
     turn_diff_filtered = turn_diff_last + delta;
     turn_diff_last = turn_diff_filtered;
+
+    if (num == 1 && run_seconds > 10) {
+        BaseSpeed = 100.0f;
+    }
 
     if (fabsf(turn_diff_filtered) < ForwardLimit) {
         base_speed_mm = BaseSpeed - (BaseSpeed * (fabsf(turn_diff_filtered) / ForwardLimit));
