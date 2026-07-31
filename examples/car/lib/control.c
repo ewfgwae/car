@@ -48,7 +48,7 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 	} else {
 		i = 0;
 	}
-	if(run_seconds>=12||key_get_num==1)
+	if(run_seconds>=12&&key_get_num==1)
 	{
 		BaseSpeed = 100.0f;
 
@@ -86,7 +86,7 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 				Line_Kd = 40.0f;
 				RAMP_LIMIT = 15.0f;
 				Velocity_KP=4000;
-				Velocity_KI=2000;
+				Velocity_KI=1000;
 				OLED_Clear();
 				OLED_ShowString(0, 0, "mode2", OLED_8X16);
 				OLED_Update();
