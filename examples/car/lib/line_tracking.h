@@ -12,5 +12,7 @@ extern float base_speed_mm, BaseSpeed, ForwardLimit;
 extern float turn_diff;
 extern float line_error;
 extern float g_start_ramp;
+extern float g_stop_ramp;
+extern uint8_t g_restart;
 
 #endif

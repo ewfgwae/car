@@ -102,6 +102,8 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 				run_seconds = 0;
 				i = 0;
 				g_start_ramp = 0.0f;	//mod2缓启动系数归零，重新缓启动
+				g_stop_ramp = 1.0f;		//mod2缓停车系数复位
+				g_restart = 1;			//通知巡线状态机复位到FORWARD
 				Reset_Velocity_PID();	//速度环PID清零，避免启动冲击
 			}
 

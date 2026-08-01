@@ -29,6 +29,8 @@ float Line_Kd = 25.0f;
 
 float RAMP_LIMIT = 20.0f;
 float g_start_ramp = 1.0f;		//mod2缓启动系数 0~1（全局，供control.c复位）
+float g_stop_ramp  = 1.0f;		//mod2缓停车系数 1~0（全局，供control.c复位）
+uint8_t g_restart = 0;			//重新启动标志：由control.c置1，复位巡线状态机
 
 /*=============================================================================
  * 权重循迹参数
@@ -57,6 +59,7 @@ typedef enum {
     static uint16_t corner_period_cnt = 0;
     static uint16_t stop_debounce_cnt = 0;
     static uint16_t stop_straight_cnt = 0;
+    static uint8_t mod2_stopping = 0;   //mod2滑行停车标志：保持循迹减速滑行
 #define CORNER_DEBOUNCE_CNT  700 
 
 /*=============================================================================
@@ -95,6 +98,16 @@ void IRDM_line_inspection(void)
     int8_t num = key_get_turn_num();
     uint8_t sensor_values[8];
     float centroid;
+
+    /* 重新启动：复位巡线状态机和缓停车系数 */
+    if (g_restart) {
+        g_restart = 0;
+        state = STATE_FORWARD;
+        stop_debounce_cnt = 0;
+        stop_straight_cnt = 0;
+        mod2_stopping = 0;
+        g_stop_ramp = 1.0f;
+    }
 
     if (num >= 1) {
         total_corners = num * 4;
@@ -144,8 +157,12 @@ void IRDM_line_inspection(void)
     }
 
     if (stop_debounce_cnt >= STOP_DEBOUNCE && state != STATE_STOP && run_seconds > 10) {
-        state = STATE_STOP;
-        stop_straight_cnt = 5;
+        if (key_get_num == 2) {
+            mod2_stopping = 1;   //mod2滑行停车：保持循迹，速度平滑衰减
+        } else {
+            state = STATE_STOP;
+            stop_straight_cnt = 5;
+        }
     }
 
     switch (state)
@@ -186,7 +203,7 @@ void IRDM_line_inspection(void)
 			}
 			else if(key_get_num==2)
 			{
-				
+				/* mod2不进入STATE_STOP，滑行停车在巡线主流程中处理 */
 			}
 			
             if (stop_straight_cnt > 0) {
@@ -249,15 +266,28 @@ void IRDM_line_inspection(void)
     left_motor_speed  = 0.001f * (base_speed_mm - turn_diff_filtered);
     right_motor_speed = 0.001f * (base_speed_mm + turn_diff_filtered);
 
-    /* mod2缓启动：对最终目标速度（基础速度+转向差速）整体缩放，
-       速度环PID输出随之平缓爬升，避免启动瞬间的冲击 */
+    /* mod2缓启动/缓停车：对最终目标速度（基础速度+转向差速）整体缩放，
+       速度环PID输出随之平缓变化，避免启停瞬间的冲击 */
     if (key_get_num == 2) {
-        left_motor_speed  *= g_start_ramp;
-        right_motor_speed *= g_start_ramp;
+        left_motor_speed  *= g_start_ramp * g_stop_ramp;
+        right_motor_speed *= g_start_ramp * g_stop_ramp;
     }
 
     MotorA.Target_Encoder = left_motor_speed;
     MotorB.Target_Encoder = right_motor_speed;
+
+    /* mod2滑行停车：期间保持循迹，速度由g_stop_ramp平滑衰减，
+       不做急刹，让车向前滑行至停，衰减到0后彻底停车 */
+    if (mod2_stopping) {
+        g_stop_ramp -= 0.005f;          //每10ms衰减0.005，约2秒滑行至停
+        if (g_stop_ramp <= 0.0f) {
+            g_stop_ramp = 0.0f;
+            mod2_stopping = 0;
+            MotorA.Target_Encoder = 0;
+            MotorB.Target_Encoder = 0;
+            Flag_Stop = 1;
+        }
+    }
 
     if (total_corners > 0 && corner_count >= total_corners && state != STATE_STOP) {
         state = STATE_STOP;
