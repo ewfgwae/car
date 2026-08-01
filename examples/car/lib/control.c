@@ -48,7 +48,7 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 	} else {
 		i = 0;
 	}
-	if(run_seconds>=12&&key_get_num==1)
+	if(run_seconds>=10&&key_get_num==1)
 	{
 		BaseSpeed = 100.0f;
 
@@ -59,12 +59,16 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 	 if(DL_TimerA_getPendingInterrupt(TIMER_ENCODER_READ_INST))
 		{
 			key_read();
-			if (key_get_turn_num() == 1) {
+			if(Flag_Stop==0)
+			{
+				
+			}
+			else if (key_get_turn_num() == 1) {
 				key_get_num=1;
 				Turn90Angle  = 125.0f;
 				ForwardLimit = 200.0f;
 				TurnMinAngle = 15.0f;
-				BaseSpeed    = 600.0f;
+				BaseSpeed    = 500.0f;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 .0f;
 				Line_Kp = 100.0f;
 				Line_Ki = 1.0f;
 				Line_Kd = 35.0f;
@@ -75,7 +79,8 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 				OLED_Clear();
 				OLED_ShowString(0, 0, "mod1", OLED_32X64);
 				OLED_Update();
-			} else if (key_get_turn_num() == 2) {
+			} 
+			else if (key_get_turn_num() == 2) {
 				key_get_num=2;
 				Turn90Angle  = 125.0f;
 				ForwardLimit = 150.0f;
@@ -91,7 +96,7 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 				OLED_ShowString(0, 0, "mod2", OLED_32X64);
 				OLED_Update();
 			}
-			if(key_start_is_press())
+			if(key_start_is_press() && Flag_Stop)
 			{
 				Flag_Stop=0;
 				run_seconds = 0;
