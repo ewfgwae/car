@@ -156,7 +156,7 @@ void IRDM_line_inspection(void)
         }
     }
 
-    if (stop_debounce_cnt >= STOP_DEBOUNCE && state != STATE_STOP && run_seconds > 10) {
+    if (stop_debounce_cnt >= STOP_DEBOUNCE && state != STATE_STOP && run_seconds > run_seconds_limit) {
         if (key_get_num == 2) {
             mod2_stopping = 1;   //mod2滑行停车：保持循迹，速度平滑衰减
         } else {

@@ -34,6 +34,7 @@ extern Encoder OriginalEncoder; 					//编码器原始数据
 extern Motor_parameter MotorA,MotorB;				//左右电机相关变量
 extern uint8_t Flag_Stop;
 extern uint8_t run_seconds;
+extern uint8_t run_seconds_limit;
 float PWM_Limit(float IN,float max,float min);
 
 

@@ -29,6 +29,7 @@ Encoder OriginalEncoder;
 bool flag_start=0;
 uint32_t uiTick = 0;
 uint8_t run_seconds = 0;
+uint8_t run_seconds_limit = 10;		//运行秒数阈值，默认10，按键4加/5减
 extern uint8_t flag_oled;
 uint8_t i=0;
 uint8_t key_get_num;
@@ -48,7 +49,7 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 	} else {
 		i = 0;
 	}
-	if(run_seconds>=10&&key_get_num==1)
+	if(run_seconds>=run_seconds_limit&&key_get_num==1)
 	{
 		BaseSpeed = 100.0f;
 
@@ -95,6 +96,33 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 				OLED_Clear();
 				OLED_ShowString(0, 0, "mod2", OLED_32X64);
 				OLED_Update();
+			}
+			/* 按键4/5调节运行秒数阈值(仅停车状态)，30ms消抖，按下一次只触发一次 */
+			if(Flag_Stop)
+			{
+				static uint8_t adj_cnt = 0;
+				static uint8_t adj_lock = 0;
+				int8_t adj_key = key_get_turn_num();
+				if (adj_key == 4 || adj_key == 5) {
+					if (!adj_lock) {
+						adj_cnt++;
+						if (adj_cnt >= 3) {			//连续3次(30ms)稳定按下才生效
+							adj_cnt = 0;
+							adj_lock = 1;			//锁定，松开后才能再次调节
+							if (adj_key == 4) {
+								if (run_seconds_limit < 99) run_seconds_limit++;
+							} else {
+								if (run_seconds_limit > 1) run_seconds_limit--;
+							}
+							OLED_Clear();
+							OLED_ShowNum(0, 0, run_seconds_limit, 2, OLED_32X64);
+							OLED_Update();
+						}
+					}
+				} else {
+					adj_cnt = 0;
+					adj_lock = 0;
+				}
 			}
 			if(key_start_is_press() && Flag_Stop)
 			{
