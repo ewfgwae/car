@@ -41,6 +41,7 @@ void Get_Velocity_From_Encoder(int Encoder1,int Encoder2);
 void Get_Target_Encoder(float Vx,float Vz);
 int Incremental_PI_Right (float Encoder,float Target);
 int Incremental_PI_Left (float Encoder,float Target);
+void Reset_Velocity_PID(void);
 
 
 

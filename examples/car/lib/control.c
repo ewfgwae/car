@@ -101,6 +101,8 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 				Flag_Stop=0;
 				run_seconds = 0;
 				i = 0;
+				g_start_ramp = 0.0f;	//mod2缓启动系数归零，重新缓启动
+				Reset_Velocity_PID();	//速度环PID清零，避免启动冲击
 			}
 
 			
@@ -183,27 +185,35 @@ pwm代表增量输出
 在我们的速度控制闭环系统里面，只使用PI控制
 pwm+=Kp[e（k）-e(k-1)]+Ki*e(k)
 **************************************************************************/
+static float Bias_L, Pwm_L, Last_bias_L;
+static float Bias_R, Pwm_R, Last_bias_R;
+
+/* 重置增量式速度环PID状态，避免启动瞬间PID输出冲击 */
+void Reset_Velocity_PID(void)
+{
+	Bias_L = Pwm_L = Last_bias_L = 0.0f;
+	Bias_R = Pwm_R = Last_bias_R = 0.0f;
+}
+
 int Incremental_PI_Left (float Encoder,float Target)
 { 	
-	 static float Bias,Pwm,Last_bias;
-	 Bias=Target-Encoder;                					//计算偏差
-	 Pwm+=Velocity_KP*(Bias-Last_bias)+Velocity_KI*Bias;   	//增量式PI控制器
-	 if(Flag_Stop) Pwm=0;
-	 if(Pwm>4000)Pwm=4000;
-	 if(Pwm<-4000)Pwm=-4000;
-	 Last_bias=Bias;	                   					//保存上一次偏差 
-	 return Pwm;                         					//增量输出
+	 Bias_L=Target-Encoder;                					//计算偏差
+	 Pwm_L+=Velocity_KP*(Bias_L-Last_bias_L)+Velocity_KI*Bias_L;   	//增量式PI控制器
+	 if(Flag_Stop) Pwm_L=0;
+	 if(Pwm_L>4000)Pwm_L=4000;
+	 if(Pwm_L<-4000)Pwm_L=-4000;
+	 Last_bias_L=Bias_L;	                   					//保存上一次偏差 
+	 return Pwm_L;                         					//增量输出
 }
 
 
 int Incremental_PI_Right (float Encoder,float Target)
 { 	
-	 static float Bias,Pwm,Last_bias;
-	 Bias=Target-Encoder;                					//计算偏差
-	 Pwm+=Velocity_KP*(Bias-Last_bias)+Velocity_KI*Bias;   	//增量式PI控制器
-	if(Flag_Stop) Pwm=0;
-	 if(Pwm>4000)Pwm=4000;
-	 if(Pwm<-4000)Pwm=-4000;
-	 Last_bias=Bias;	                   					//保存上一次偏差 
-	 return Pwm;                         					//增量输出
+	 Bias_R=Target-Encoder;                					//计算偏差
+	 Pwm_R+=Velocity_KP*(Bias_R-Last_bias_R)+Velocity_KI*Bias_R;   	//增量式PI控制器
+	if(Flag_Stop) Pwm_R=0;
+	 if(Pwm_R>4000)Pwm_R=4000;
+	 if(Pwm_R<-4000)Pwm_R=-4000;
+	 Last_bias_R=Bias_R;	                   					//保存上一次偏差 
+	 return Pwm_R;                         					//增量输出
 }

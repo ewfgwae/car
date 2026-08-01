@@ -28,6 +28,7 @@ float Line_Ki = 1.0f;
 float Line_Kd = 25.0f;
 
 float RAMP_LIMIT = 20.0f;
+float g_start_ramp = 1.0f;		//mod2缓启动系数 0~1（全局，供control.c复位）
 
 /*=============================================================================
  * 权重循迹参数
@@ -97,6 +98,17 @@ void IRDM_line_inspection(void)
 
     if (num >= 1) {
         total_corners = num * 4;
+    }
+
+    /* mod2缓启动：按下START时由control.c将g_start_ramp清零，
+       运行中每10ms增加0.01，约1秒爬升到1（mod1不使用，恒为1） */
+    if (key_get_num == 2) {
+        if (g_start_ramp < 1.0f) {
+            g_start_ramp += 0.01f;
+            if (g_start_ramp > 1.0f) g_start_ramp = 1.0f;
+        }
+    } else {
+        g_start_ramp = 1.0f;
     }
 
     if (!pid_inited) {
@@ -236,6 +248,13 @@ void IRDM_line_inspection(void)
 
     left_motor_speed  = 0.001f * (base_speed_mm - turn_diff_filtered);
     right_motor_speed = 0.001f * (base_speed_mm + turn_diff_filtered);
+
+    /* mod2缓启动：对最终目标速度（基础速度+转向差速）整体缩放，
+       速度环PID输出随之平缓爬升，避免启动瞬间的冲击 */
+    if (key_get_num == 2) {
+        left_motor_speed  *= g_start_ramp;
+        right_motor_speed *= g_start_ramp;
+    }
 
     MotorA.Target_Encoder = left_motor_speed;
     MotorB.Target_Encoder = right_motor_speed;
