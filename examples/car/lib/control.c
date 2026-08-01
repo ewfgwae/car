@@ -68,13 +68,13 @@ void TIMER_ENCODER_READ_INST_IRQHandler(void)
 				Turn90Angle  = 125.0f;
 				ForwardLimit = 200.0f;
 				TurnMinAngle = 15.0f;
-				BaseSpeed    = 500.0f;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 .0f;
-				Line_Kp = 100.0f;
+				BaseSpeed    = 460.0f;
+				Line_Kp = 85.0f;
 				Line_Ki = 1.0f;
-				Line_Kd = 35.0f;
-				RAMP_LIMIT = 20.0f;
-				Velocity_KP=6000;
-				Velocity_KI=2000;
+				Line_Kd = 20.0f;
+				RAMP_LIMIT = 15.0f;
+				Velocity_KP=5000;
+				Velocity_KI=1200;
 				
 				OLED_Clear();
 				OLED_ShowString(0, 0, "mod1", OLED_32X64);
